@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Category {
+  GOLD
+  SILVER
+  RED
+}
+
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+model Event {
+  id           Int           @id @default(autoincrement())
+  title        String        @db.VarChar(160)
+  startsAt     DateTime
+  location     String?       @db.VarChar(200)
+  description  String?       @db.VarChar(1000)
+  priceGold    Int?
+  priceSilver  Int?
+  priceRed     Int?
+  published    Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  reservations Reservation[]
+
+  @@index([published, startsAt])
+}
+
+model Reservation {
+  id        Int               @id @default(autoincrement())
+  eventId   Int
+  event     Event             @relation(fields: [eventId], references: [id], onDelete: Restrict)
+  name      String            @db.VarChar(120)
+  phone     String            @db.VarChar(40)
+  email     String?           @db.VarChar(160)
+  guests    Int
+  category  Category
+  note      String?           @db.VarChar(500)
+  status    ReservationStatus @default(PENDING)
+  lang      String            @default("mk") @db.VarChar(2)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  @@index([eventId, category, status])
+  @@index([createdAt])
+}
